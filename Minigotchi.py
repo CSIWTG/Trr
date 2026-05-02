@@ -16,9 +16,9 @@ stav = "den"
 lock = False
 enemies = []
 enemak = [
-    {"name": "Zombi", "img": "Zombi.png", "spd": 1, "dmg": 2, "hp": 1},
-    {"name": "Slim", "img": "Slim.png", "spd": 1, "dmg": 2, "hp": 3},
+    {"name": "Zombi", "img": "Zombi.png", "spd": 1, "dmg": 2, "hp": 2},
     {"name": "Skeli", "img": "Skeli.png", "spd": 2, "dmg": 1, "hp": 1},
+    {"name": "Slim", "img": "Slim.png", "spd": 1, "dmg": 2, "hp": 3},
     {"name": "Fish", "img": "Fish.png", "spd": 1, "dmg": 3, "hp": 2}
 ]
 personaliii = ["Chrabry", "Zbabeli", "Mrštný", "Obžerství"   ]
@@ -114,6 +114,7 @@ minik = QPushButton(novak)
 minik.hide()
 minik.setIcon(QIcon(r"MinLilIdio.png"))
 minik.move(204,0)
+minik.setFixedSize(160, 360)
 minik.setIconSize(QSize(180, 380))
 minik.setStyleSheet("""
     QPushButton {
@@ -169,7 +170,8 @@ lajna.adjustSize()
 lajna.move((600 - lajna.width()) // 2, 5)
  
 def zmena():
-    lajna.setText(str(mon))
+    zmenit = str(mon).replace(".0", "")
+    lajna.setText(zmenit)
  
 HPBar = QPushButton(novak)
 HPBar.setIcon(QIcon(r"1.png"))
@@ -254,6 +256,7 @@ for objekt, x, y, png in dekorace:
 
 def zmrzf():
     print("Umrzl")
+
 def Switcharoonie():
     global Iterator
     global hlad
@@ -375,25 +378,37 @@ jidlicka = [
     {"name": "Vroci", "img": "Vroci.png", "y": 140, "x": 140, "price": 20, "count": 1}
 ]
 
+multi = 1
 def update(mode):
+    global event
+    global multi
     if mode == "Led":
         for item in jidlicka:
-            item["label"].setText(f"{item['price']}$")
+            if event == "BL" or event == "E":
+                item["label"].setText(f"{item['price']*multi}$!")
+            else:
+                item["label"].setText(f"{item['price']}$")
     elif mode == "Hamu":
         for item in jidlicka:
             item["label"].setText(f"({item['count']})")
     elif mode == "Nakup":
         for item in nabytky:
-            item["label"].setText(f"{item['price']}$")
+            if event == "BL":
+                item["label"].setText(f"{item['price']-15}$")
+            elif event == "E":
+                item["label"].setText(f"{item['price']+40}$")
+            else:
+                item["label"].setText(f"{item['price']}$")
    
 def HorsiNezFilipTurekOtaznik(item):
     global mon
-    if mon < item["price"]:
+    global multi
+    if mon < item["price"] * multi:
         return
-    mon -= item["price"]
+    mon -= item["price"] * multi
     item["count"] += 1
-    lajna.setText(str(mon))
     update(UIstate)
+    zmena()
  
 jidlo_btns = []
 jidlo_inputs = []
@@ -452,9 +467,14 @@ def updateenvir():
         
 def koupimesikocicku(item):
     global mon
-    if mon < item["price"]:
+    global multi
+    if multi == 0.5:
+        multiv = 15
+    else:
+        multiv = -40
+    if mon < item["price"] - multiv:
         return
-    mon = mon - item["price"]
+    mon = mon - (item["price"] - multiv)
     item["count"] += 1
     lajna.setText(str(mon))
     update("Nakup")
@@ -482,8 +502,22 @@ for item in nabytky:
     item["button"] = btn
     item["label"] = label
 
-def animacija(enemy):
+def swap(enemy, losos=None):
+    widget = enemy["widget"]
+    img = losos if losos else enemy["data"]["img"]
+    pix = QPixmap(img)
+    if enemy["rot"] == "left":
+        pix = pix.transformed(QTransform().scale(-1, 1))
+    widget.setIcon(QIcon(pix))
+
+def animacija(enemy, killornot):
     global lalala
+    if not killornot:
+        vajco.setIcon(QIcon("GunPoint.png"))
+        lalala = 0
+        enemy["zmrznihajzle"] = "ne"
+        swap(enemy)
+        return
     widget = enemy.get("widget")
     try:
         if widget:
@@ -494,12 +528,12 @@ def animacija(enemy):
     if enemy in enemies:
         enemies.remove(enemy)
     vajco.setIcon(QIcon("GunPoint.png"))
+    swap(enemy)
     lalala = 0
 
 def zabijho(enemy, skin):
     global hatchlvl
     global lalala
-    print(hatchlvl)
     if hatchlvl == 10:
         lalala = 10
         noc.raise_()
@@ -507,7 +541,13 @@ def zabijho(enemy, skin):
         matarael = skin.replace(".png", "")
         widget = enemy["widget"]
         widget.setIcon(QIcon(f"{matarael}Murder.png"))
-        QTimer.singleShot(300, lambda: animacija(enemy))
+        enemy["hp"] = enemy["hp"] - 1
+        swap(enemy, f"{matarael}Murder.png")
+        enemy["zmrznihajzle"] = "ano"
+        if enemy["hp"] < 1:
+            QTimer.singleShot(300, lambda: animacija(enemy, True))
+        else:
+            QTimer.singleShot(300, lambda: animacija(enemy, False))
 
 
 def utok(enemy):
@@ -524,7 +564,10 @@ def utok(enemy):
         enemies.remove(enemy)
 
 def spawnzombi():
-    data = random.choice(enemak)
+    if random.randint(1,3) == 3:
+        data = random.choice(enemak[2:4])
+    else:
+        data = random.choice(enemak[0:2])
     ene = QPushButton(novak)
     ene.setIcon(QIcon(data["img"]))
     ene.setIconSize(QSize(180, 380))
@@ -533,8 +576,10 @@ def spawnzombi():
     flipped = Zmenik.transformed(QTransform().scale(-1, 1))
     if random.randint(1,2) == 2:
         x = 550
+        dir = "right"
     else:
-        x = 0
+        x = -100
+        dir = "left"
         ene.setIcon(QIcon(flipped))
     y = 10
     ene.move(x, y)
@@ -560,11 +605,14 @@ def spawnzombi():
 """)
     enemy = {
         "widget": ene,
-        "data": data
+        "data": data,
+        "rot": dir,
+        "zmrznihajzle": "ne",
+        "hp": data["hp"]
     }
+    swap(enemy)
     ene.clicked.connect(lambda _, e=enemy: zabijho(e, data["img"]))
     enemies.append(enemy)
-    spawner.start(random.randint(5000,8000))
 
 lalala = 0
 def m1917m():
@@ -574,10 +622,10 @@ def m1917m():
         matarael = img.replace(".png", "")
         if lalala == 0:
             lalala = 1
-            enemy["widget"].setIcon(QIcon(f"{matarael}2.png"))
+            swap(enemy, f"{matarael}2.png")
         elif lalala == 1:
             lalala = 0
-            enemy["widget"].setIcon(QIcon(f"{matarael}.png"))
+            swap(enemy, f"{matarael}.png")
 
 artsakh = 0
 def piskoviste():
@@ -697,8 +745,17 @@ def navod(Type):
         schovse()
 
 def hybame():
+    global lalala
     if not minik.isVisible():
         return
+    global lalala
+    if not minik.isVisible():
+        return
+    for enemy in enemies[:]:
+        if enemy.get("zmrznihajzle") == "ano":
+            return
+        ene = enemy["widget"]
+        spd = enemy["data"]["spd"]
     mx = minik.x()
     my = minik.y()
     for enemy in enemies[:]:
@@ -825,10 +882,9 @@ def chud():
         return
     if lock:
         return
-    if stav == "noc" and not event == "B":
+    if stav == "noc" and not event == "E":
         return
     lock = True
-    print("Hotova")
     hlad += 1
     minik.setIcon(QIcon(r"MinHungry.png"))
     if hlad < 6:
@@ -870,6 +926,7 @@ def day_night():
     global envir
     global event
     global mon
+    global multi
     minik.show()
     if envir == "Hriste":
         navod("Exit")
@@ -888,7 +945,13 @@ def day_night():
 }}
 """)
         if event == "B":
-            QTimer.singleShot(random.randint(6000,10000), spawnzombi)
+            spawner.start(random.randint(6000,10000))
+        elif event == "BL":
+            multi = 0.5
+        elif event == "E":
+            multi = 1.5
+        else:
+            multi = 1
     else:
         stav = "den"
         spawner.stop()
@@ -1015,7 +1078,7 @@ def masa():
 LedSwitch=0
 vajco.clicked.connect(hatch)
 minik.clicked.connect(ageup)
-minik.clicked.connect(day_night)
+#minik.clicked.connect(day_night)
 frig.clicked.connect(led)
 menuexit.clicked.connect(masa)
 hopkun.clicked.connect(hrajsi)
