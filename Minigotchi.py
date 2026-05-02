@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QLabel
 import random
 from PyQt5.QtCore import QTimer, Qt
 from PyQt5 import QtCore
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QTransform
 
 mon = 100
 age = 0
@@ -16,9 +16,10 @@ stav = "den"
 lock = False
 enemies = []
 enemak = [
-    {"name": "Zombi", "img": "Zombi.png", "spd": 1, "dmg": 2},
-    {"name": "Slim", "img": "Slim.png", "spd": 1, "dmg": 2},
-    {"name": "Skeli", "img": "Skeli.png", "spd": 1, "dmg": 2},
+    {"name": "Zombi", "img": "Zombi.png", "spd": 1, "dmg": 2, "hp": 1},
+    {"name": "Slim", "img": "Slim.png", "spd": 1, "dmg": 2, "hp": 3},
+    {"name": "Skeli", "img": "Skeli.png", "spd": 2, "dmg": 1, "hp": 1},
+    {"name": "Fish", "img": "Fish.png", "spd": 1, "dmg": 3, "hp": 2}
 ]
 personaliii = ["Chrabry", "Zbabeli", "Mrštný", "Obžerství"   ]
 event = "X"
@@ -173,6 +174,8 @@ def zmena():
 HPBar = QPushButton(novak)
 HPBar.setIcon(QIcon(r"1.png"))
 HUBar = QPushButton(novak)
+HUBar.setAttribute(QtCore.Qt.WA_TransparentForMouseEvents)
+HPBar.setAttribute(QtCore.Qt.WA_TransparentForMouseEvents)
 HUBar.setIcon(QIcon(r"1H.png"))
 HPBar.setIconSize(QSize(250, 300))
 HPBar.move(0,-130)
@@ -479,10 +482,38 @@ for item in nabytky:
     item["button"] = btn
     item["label"] = label
 
+def animacija(enemy):
+    global lalala
+    widget = enemy.get("widget")
+    try:
+        if widget:
+            widget.hide()
+            widget.deleteLater()
+    except RuntimeError:
+        return
+    if enemy in enemies:
+        enemies.remove(enemy)
+    vajco.setIcon(QIcon("GunPoint.png"))
+    lalala = 0
+
+def zabijho(enemy, skin):
+    global hatchlvl
+    global lalala
+    print(hatchlvl)
+    if hatchlvl == 10:
+        lalala = 10
+        noc.raise_()
+        vajco.setIcon(QIcon("Shot.png"))
+        matarael = skin.replace(".png", "")
+        widget = enemy["widget"]
+        widget.setIcon(QIcon(f"{matarael}Murder.png"))
+        QTimer.singleShot(300, lambda: animacija(enemy))
+
+
 def utok(enemy):
     global Hp
     damage = enemy["data"]["dmg"]
-    Hp -= damage   # FIXED: HP now decreases
+    Hp = Hp + damage
     if Hp <= 0:
         Hp = 0
         chcipl()
@@ -497,10 +528,24 @@ def spawnzombi():
     ene = QPushButton(novak)
     ene.setIcon(QIcon(data["img"]))
     ene.setIconSize(QSize(180, 380))
-    x = random.randint(0, 550)
-    y = 280
+    ene.setFixedSize(180, 370)
+    Zmenik = QPixmap(data["img"])
+    flipped = Zmenik.transformed(QTransform().scale(-1, 1))
+    if random.randint(1,2) == 2:
+        x = 550
+    else:
+        x = 0
+        ene.setIcon(QIcon(flipped))
+    y = 10
     ene.move(x, y)
     ene.show()
+    ene.lower()
+    global envir
+    for item in nabytky:
+        obj = item.get("object")
+        if obj:
+            obj.lower()
+    frig.lower()
     ene.setStyleSheet("""
     QPushButton {
         border: none;
@@ -517,9 +562,22 @@ def spawnzombi():
         "widget": ene,
         "data": data
     }
-    ene.clicked.connect(lambda _, e=enemy: utok(e))
+    ene.clicked.connect(lambda _, e=enemy: zabijho(e, data["img"]))
     enemies.append(enemy)
     spawner.start(random.randint(5000,8000))
+
+lalala = 0
+def m1917m():
+    global lalala
+    for enemy in enemies:
+        img = enemy["data"]["img"]
+        matarael = img.replace(".png", "")
+        if lalala == 0:
+            lalala = 1
+            enemy["widget"].setIcon(QIcon(f"{matarael}2.png"))
+        elif lalala == 1:
+            lalala = 0
+            enemy["widget"].setIcon(QIcon(f"{matarael}.png"))
 
 artsakh = 0
 def piskoviste():
@@ -643,7 +701,7 @@ def hybame():
         return
     mx = minik.x()
     my = minik.y()
-    for enemy in enemies:
+    for enemy in enemies[:]:
         ene = enemy["widget"]
         spd = enemy["data"]["spd"]
         ex = ene.x()
@@ -652,14 +710,19 @@ def hybame():
             ex += spd
         elif ex > mx:
             ex -= spd
-        if ey < my:
-            ey += spd
+        if random.randint(1,2) == 2:
+            if ey < my:
+                ey += spd
+        if ey > my:
+            ey -= spd
         ene.move(ex, ey)
         if abs(ex - mx) < 30 and abs(ey - my) < 30:
             utok(enemy)
 
 hybaj = QTimer(novak)
 hybaj.timeout.connect(hybame)
+ani = QTimer(novak)
+ani.timeout.connect(m1917m)
 spawner = QTimer(novak)
 spawner.timeout.connect(spawnzombi)
 
@@ -815,7 +878,7 @@ def day_night():
         noc.show()
         stav = "noc"
         nocniteror = ["B", "BL", "E"]
-        if random.randint(1,3) == 3:
+        if random.randint(1,2) == 2:
             event = random.choice(nocniteror)
         else:
             event = "N"
@@ -824,12 +887,11 @@ def day_night():
     border-image: url("Pikij{event}.png");
 }}
 """)
-        #if event == "B":
-            #QTimer.singleShot(random.randint(6000,10000), spawnzombi)
+        if event == "B":
+            QTimer.singleShot(random.randint(6000,10000), spawnzombi)
     else:
         stav = "den"
         spawner.stop()
-        hybaj.stop()
         novak.setStyleSheet("""
 #Min {
     border-image: url("Pikij.png") 0 0 0 0 stretch stretch;
@@ -837,6 +899,8 @@ def day_night():
 """)
         noc.hide()
         mon = mon + random.randint(20,70)
+        zmena()
+
 
 timer = QTimer(novak)
 timer.timeout.connect(chud)
@@ -848,7 +912,8 @@ cyklus.timeout.connect(day_night)
 def Eggon():
     timer.start(20000)
     cyklus.start(80000)
-    #hybaj.start(30)
+    hybaj.start(30)
+    ani.start(300)
 
 def hrajsi():
     global konik
