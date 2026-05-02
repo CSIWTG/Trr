@@ -14,9 +14,16 @@ age = 0
 hatchlvl = 0
 stav = "den"
 lock = False
+enemies = []
+enemak = [
+    {"name": "Zombi", "img": "Zombi.png", "spd": 1, "dmg": 2},
+    {"name": "Slim", "img": "Slim.png", "spd": 1, "dmg": 2},
+    {"name": "Skeli", "img": "Skeli.png", "spd": 1, "dmg": 2},
+]
 personaliii = ["Chrabry", "Zbabeli", "Mrštný", "Obžerství"   ]
 event = "X"
 hlad = 0
+LedSwitch = 0
 envir = "Domov"
 Hp = 1
 sub_buttons = []
@@ -472,6 +479,48 @@ for item in nabytky:
     item["button"] = btn
     item["label"] = label
 
+def utok(enemy):
+    global Hp
+    damage = enemy["data"]["dmg"]
+    Hp -= damage   # FIXED: HP now decreases
+    if Hp <= 0:
+        Hp = 0
+        chcipl()
+    HPBar.setIcon(QIcon(f"{Hp}.png"))
+    enemy["widget"].hide()
+    enemy["widget"].deleteLater()
+    if enemy in enemies:
+        enemies.remove(enemy)
+
+def spawnzombi():
+    data = random.choice(enemak)
+    ene = QPushButton(novak)
+    ene.setIcon(QIcon(data["img"]))
+    ene.setIconSize(QSize(180, 380))
+    x = random.randint(0, 550)
+    y = 280
+    ene.move(x, y)
+    ene.show()
+    ene.setStyleSheet("""
+    QPushButton {
+        border: none;
+        background: transparent;
+    }
+    QPushButton:hover {
+        background: transparent;
+    }
+    QPushButton:pressed {
+        background: transparent;
+    }
+""")
+    enemy = {
+        "widget": ene,
+        "data": data
+    }
+    ene.clicked.connect(lambda _, e=enemy: utok(e))
+    enemies.append(enemy)
+    spawner.start(random.randint(5000,8000))
+
 artsakh = 0
 def piskoviste():
     global start
@@ -552,11 +601,11 @@ def schovse():
             else:
                 obj.show()
 
-def navod():
+def navod(Type):
     global envir
     global start
     global stav
-    if lock and not envir == "Hriste" and stav == "noc":
+    if lock and not Type == "Exit":
         return
     if not start:
         return
@@ -588,6 +637,31 @@ def navod():
         hopkun.hide()
         minik.show()
         schovse()
+
+def hybame():
+    if not minik.isVisible():
+        return
+    mx = minik.x()
+    my = minik.y()
+    for enemy in enemies:
+        ene = enemy["widget"]
+        spd = enemy["data"]["spd"]
+        ex = ene.x()
+        ey = ene.y()
+        if ex < mx:
+            ex += spd
+        elif ex > mx:
+            ex -= spd
+        if ey < my:
+            ey += spd
+        ene.move(ex, ey)
+        if abs(ex - mx) < 30 and abs(ey - my) < 30:
+            utok(enemy)
+
+hybaj = QTimer(novak)
+hybaj.timeout.connect(hybame)
+spawner = QTimer(novak)
+spawner.timeout.connect(spawnzombi)
 
 def zastrel():
     global ZStoggle
@@ -735,7 +809,7 @@ def day_night():
     global mon
     minik.show()
     if envir == "Hriste":
-        navod()
+        navod("Exit")
     if stav == "den":
         kladno.stop()
         noc.show()
@@ -747,11 +821,15 @@ def day_night():
             event = "N"
         novak.setStyleSheet(f"""
 #Min {{
-    border-image: url("Pikij{stav}.png");
+    border-image: url("Pikij{event}.png");
 }}
 """)
+        #if event == "B":
+            #QTimer.singleShot(random.randint(6000,10000), spawnzombi)
     else:
         stav = "den"
+        spawner.stop()
+        hybaj.stop()
         novak.setStyleSheet("""
 #Min {
     border-image: url("Pikij.png") 0 0 0 0 stretch stretch;
@@ -770,6 +848,7 @@ cyklus.timeout.connect(day_night)
 def Eggon():
     timer.start(20000)
     cyklus.start(80000)
+    #hybaj.start(30)
 
 def hrajsi():
     global konik
@@ -871,11 +950,13 @@ def masa():
 LedSwitch=0
 vajco.clicked.connect(hatch)
 minik.clicked.connect(ageup)
+minik.clicked.connect(day_night)
 frig.clicked.connect(led)
 menuexit.clicked.connect(masa)
 hopkun.clicked.connect(hrajsi)
 psik.clicked.connect(piskoviste)
 zmrz.clicked.connect(zmrzf)
+
 noc.raise_()
 novak.show()
 app.exec_()
