@@ -226,11 +226,24 @@ frigmenu.setStyleSheet("""
 """)
 '''frigmenu.setAttribute(QtCore.Qt.WA_TransparentForMouseEvents)'''
 Iterator = 0
-
-dekorace = [
-    ("Nastenka", 45, 0, "ted"),
-    ("Kvet", 80, 0, "ted"),
-]
+frip = QPushButton(novak)
+frip.setIcon(QIcon(r"Next.png"))
+frip.move(440,116)
+frip.setIconSize(QSize(30, 30))
+frip.setAttribute(QtCore.Qt.WA_TransparentForMouseEvents, True)
+frip.hide()
+frip.setStyleSheet("""
+    QPushButton {
+        border: none;
+        background: transparent;
+    }
+    QPushButton:hover {
+        background: transparent;
+    }
+    QPushButton:pressed {
+        background: transparent;
+    }
+""")
 
 '''
 for objekt, x, y, png in dekorace:
@@ -253,7 +266,27 @@ for objekt, x, y, png in dekorace:
 '''
 
 def zmrzf():
-    print("Umrzl")
+    global LedSwitch
+    global lock
+    global UIstate
+    if LedSwitch == 0:
+        frigmenu.setIcon(QIcon(f"ZmrzMenu.png"))
+        UIstate = "Zmrz"
+        menuexit.show()
+        frigmenu.show()
+        for item in zmrzliny:
+            item["button"].show()
+            item["label"].show()
+        update("Zmrz")
+        LedSwitch = 1
+    else:
+        UIstate = "X"
+        frigmenu.hide()
+        menuexit.hide()
+        for item in zmrzliny:
+            item["button"].hide()
+            item["label"].hide()
+        LedSwitch = 0
 
 def Switcharoonie(enemy=None):
     global Iterator
@@ -399,12 +432,27 @@ jidlicka = [
     {"name": "Vroci", "img": "Vroci.png", "y": 140, "x": 140, "price": 20, "count": 1}
 ]
 
+zmrzliny = [
+    {"name": "Cookie", "img": "ZCookie.png", "y": 211, "x": 240, "price": 30, "count": 0},
+    {"name": "Ruska", "img": "ZPycknn.png", "y": 211, "x": 340, "price": 30, "count": 0},
+    {"name": "Mint", "img": "ZMint.png", "y": 150, "x": 340, "price": 30, "count": 2},
+    {"name": "Vanila", "img": "ZVanila.png", "y": 211, "x": 140, "price": 30, "count": 0},
+    {"name": "Limon", "img": "ZLimon.png", "y": 150, "x": 240, "price": 30, "count": 0},
+    {"name": "Choco", "img": "ZChoco.png", "y": 150, "x": 140, "price": 30, "count": 1}
+]
+
 multi = 1
 def update(mode):
     global event
     global multi
     if mode == "Led":
         for item in jidlicka:
+            if event == "BL" or event == "E":
+                item["label"].setText(f"{item['price']*multi}$!")
+            else:
+                item["label"].setText(f"{item['price']}$")
+    elif mode == "Zmrz":
+        for item in zmrzliny:
             if event == "BL" or event == "E":
                 item["label"].setText(f"{item['price']*multi}$!")
             else:
@@ -441,7 +489,27 @@ def volbyvarmenii(item):
         if lock:
             return
         sezer(item)
- 
+
+def aktivujeme(item):
+    global mon, multi
+    if UIstate == "Zmrz":
+        if mon < item["price"] * multi:
+            return
+        mon -= item["price"] * multi
+        item["count"] += 1
+        zmena()
+        update(UIstate)
+    else:
+        if item["count"] <= 0:
+            return
+        item["count"] -= 1
+        global hlad
+        hlad -= 1
+        if hlad < 0:
+            hlad = 0
+        HUBar.setIcon(QIcon(f"{hlad+1}H.png"))
+        zmena()
+
 for item in jidlicka:
     btn = QPushButton(novak)
     btn.setIcon(QIcon(item["img"]))
@@ -462,6 +530,27 @@ for item in jidlicka:
     item["button"] = btn
     item["label"] = label
     btn.clicked.connect(lambda _, i=item: volbyvarmenii(i))
+
+for item in zmrzliny:
+    btn = QPushButton(novak)
+    btn.setIcon(QIcon(item["img"]))
+    btn.setGeometry(item["x"], item["y"], 115, 50)
+    btn.setIconSize(QSize(60,60))
+    btn.hide()
+    btn.setStyleSheet("""
+    QPushButton {
+        border: none;
+        background: transparent;
+    }
+    """)
+    label = QLabel(novak)
+    label.setGeometry(item["x"] + 85, item["y"], 140, 50)
+    label.setStyleSheet("color: black; font-size: 14px; background: transparent;")
+    label.hide()
+    label.setAttribute(QtCore.Qt.WA_TransparentForMouseEvents)
+    item["button"] = btn
+    item["label"] = label
+    btn.clicked.connect(lambda _, i=item: aktivujeme(i))
 
 def updateenvir():
     for item in nabytky:
@@ -521,7 +610,6 @@ for item in nabytky:
         background: transparent;
     }
     """)
-
     label = QLabel(novak)
     label.setGeometry(item["x"] + 85, item["y"], 140, 50)
     label.setStyleSheet("color: black; font-size: 14px; background: transparent;")
@@ -695,6 +783,7 @@ def hamu_papu():
     if not start:
         return
     if LedSwitch == 0:
+        frip.show()
         menuexit.show()
         UIstate = "Hamu"
         frigmenu.setIcon(QIcon(r"Inventormenu.png"))
@@ -752,6 +841,7 @@ def navod(Type):
     global envir
     global start
     global stav
+    global event
     if lock and not Type == "Exit":
         return
     if not start:
@@ -769,7 +859,7 @@ def navod(Type):
         psik.show()
         hopkun.show()
         schovse()
-        if random.randint(1,2) == 2:
+        if event == "Z":
             zmrz.show()
     else:
         envir = "Domov"
@@ -991,6 +1081,10 @@ def day_night():
             cyklus.start(60000)
             minik.setIcon(QIcon("MinikSleep.png"))
     else:
+        if random.randint(1,4) == 4:
+            event = "Z"
+        else:
+            event = "N"
         Iterator = 2
         Switcharoonie()
         stav = "den"
@@ -1083,7 +1177,7 @@ def hatch():
     lock = False
  
 def ageup():
-    minik.setIcon(QIcon(f"Min{povaha}.png"))
+    minik.setIcon(QIcon(f"Min{povaha}.png")) #fix
  
 def led():
     global LedSwitch
@@ -1101,6 +1195,7 @@ def led():
         LedSwitch = 1
     else:
         UIstate = "X"
+        frip.hide()
         frigmenu.hide()
         menuexit.hide()
         for item in jidlicka:
@@ -1116,8 +1211,10 @@ def masa():
         hamu_papu()
     elif UIstate == "Led":
         led()
-    else:
+    elif UIstate == "Nakup":
         nakupy()
+    else:
+        zmrzf()
        
 LedSwitch=0
 vajco.clicked.connect(hatch)
