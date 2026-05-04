@@ -45,6 +45,27 @@ novak.setStyleSheet("""
     border-image: url("Pikij.png") 0 0 0 0 stretch stretch;
 }
 """)
+console = QPushButton(novak)
+console = QPushButton(novak)
+console.setIcon(QIcon("ConsoleNull.png"))
+console.move(120,45)
+console.setIconSize(QSize(130, 230))
+console.show()
+console.setStyleSheet("""
+    QPushButton {
+        border: none;
+        background: transparent;
+    }
+    QPushButton:hover {
+        background: transparent;
+    }
+    QPushButton:pressed {
+        background: transparent;
+    }
+""")
+inputer = QLineEdit(novak)
+inputer.setGeometry(150, 200, 60, 30)
+inputer.hide()
 noc = QLabel(novak)
 noc.setGeometry(0, 0, 600, 300)
 noc.setStyleSheet("background-color: rgba(0, 0, 0, 80);")
@@ -168,8 +189,7 @@ lajna.adjustSize()
 lajna.move((600 - lajna.width()) // 2, 5)
  
 def zmena():
-    zmenit = str(mon).replace(".0", "")
-    lajna.setText(zmenit)
+    lajna.setText(f"{mon:g}")
  
 HPBar = QPushButton(novak)
 HPBar.setIcon(QIcon(r"1.png"))
@@ -230,7 +250,6 @@ frip = QPushButton(novak)
 frip.setIcon(QIcon(r"Next.png"))
 frip.move(440,116)
 frip.setIconSize(QSize(30, 30))
-frip.setAttribute(QtCore.Qt.WA_TransparentForMouseEvents, True)
 frip.hide()
 frip.setStyleSheet("""
     QPushButton {
@@ -282,6 +301,7 @@ def zmrzf():
     else:
         UIstate = "X"
         frigmenu.hide()
+        frip.hide()
         menuexit.hide()
         for item in zmrzliny:
             item["button"].hide()
@@ -563,8 +583,10 @@ def updateenvir():
                 else:
                     obj.move(150, 45)
                 obj.setIconSize(QSize(140,140))
+                obj.setAttribute(QtCore.Qt.WA_TransparentForMouseEvents)
                 obj.show()
                 obj.lower()
+                console.lower()
                 item["object"] = obj
                 obj.setStyleSheet("""
     QPushButton {
@@ -652,6 +674,26 @@ def animacija(enemy, killornot):
     swap(enemy)
     lalala = 0
 
+def consola():
+    global RepublikaTaiwan
+    global mon
+    if RepublikaTaiwan > 29:
+        console.setIcon(QIcon("Console.png"))
+        if inputer.isVisible():
+            text = inputer.text().strip()    
+            if text == "Money": 
+                mon = mon + 100 
+                zmena()
+            elif text == "Noc" or text == "Den":
+                day_night()
+            inputer.hide()
+            inputer.clear()
+        else:
+            inputer.show()
+            inputer.setFocus()
+    else:
+        RepublikaTaiwan += 1
+
 def zabijho(enemy, skin):
     global hatchlvl
     global lalala
@@ -718,6 +760,7 @@ def spawnzombi():
         if obj:
             obj.lower()
     frig.lower()
+    console.lower()
     ene.setStyleSheet("""
     QPushButton {
         border: none;
@@ -801,6 +844,7 @@ def hamu_papu():
         for item in jidlicka:
             item["button"].hide()
             item["label"].hide()
+        frip.hide()
         frigmenu.hide()
  
 def zmrdetaktydostanes():
@@ -848,14 +892,16 @@ def navod(Type):
         return
     if stav == "noc":
         return
+    inputer.hide()
     if envir == "Domov":
         envir = "Hriste"
-        novak.setStyleSheet("""
-#Min {
-    border-image: url("Fild.png") 0 0 0 0 stretch stretch;
-}
+        novak.setStyleSheet(f"""
+#Min {{
+    border-image: url("Fild{event}.png");
+}}
 """)
         frig.hide()
+        console.hide()
         psik.show()
         hopkun.show()
         schovse()
@@ -863,13 +909,14 @@ def navod(Type):
             zmrz.show()
     else:
         envir = "Domov"
-        novak.setStyleSheet("""
-#Min {
-    border-image: url("Pikij.png") 0 0 0 0 stretch stretch;
-}
+        novak.setStyleSheet(f"""
+#Min {{
+    border-image: url("Pikij{event}.png");
+}}
 """)
         frig.show()
         psik.hide()
+        console.show()
         zmrz.hide()
         hopkun.hide()
         minik.show()
@@ -945,6 +992,7 @@ def nakupy():
         LedSwitch = 1
     else:
         UIstate = "X"
+        frip.hide()
         frigmenu.hide()
         menuexit.hide()
         for item in nabytky:
@@ -1083,17 +1131,20 @@ def day_night():
     else:
         if random.randint(1,4) == 4:
             event = "Z"
+        elif random.randint(1,4) == 3:
+            event = "RN"
         else:
-            event = "N"
+            event = ""
         Iterator = 2
         Switcharoonie()
         stav = "den"
         spawner.stop()
-        novak.setStyleSheet("""
-#Min {
-    border-image: url("Pikij.png") 0 0 0 0 stretch stretch;
-}
+        novak.setStyleSheet(f"""
+#Min {{
+    border-image: url("Pikij{event}.png");
+}}
 """)
+        
         noc.hide()
         mon = mon + random.randint(20,70)
         zmena()
@@ -1217,14 +1268,17 @@ def masa():
         zmrzf()
        
 LedSwitch=0
+RepublikaTaiwan = 0
+
 vajco.clicked.connect(hatch)
 minik.clicked.connect(ageup)
-minik.clicked.connect(day_night)
+#minik.clicked.connect(day_night)
 frig.clicked.connect(led)
 menuexit.clicked.connect(masa)
 hopkun.clicked.connect(hrajsi)
 psik.clicked.connect(piskoviste)
 zmrz.clicked.connect(zmrzf)
+console.clicked.connect(consola)
 
 noc.raise_()
 novak.show()
