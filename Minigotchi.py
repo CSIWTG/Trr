@@ -19,7 +19,8 @@ enemak = [
     {"name": "Zombi", "img": "Zombi.png", "spd": 1, "dmg": 2, "hp": 2},
     {"name": "Skeli", "img": "Skeli.png", "spd": 2, "dmg": 1, "hp": 1},
     {"name": "Slim", "img": "Slim.png", "spd": 1, "dmg": 2, "hp": 3},
-    {"name": "Ammoni", "img": "Ammoni.png", "spd": 1, "dmg": 3, "hp": 2}
+    {"name": "Ammoni", "img": "Ammoni.png", "spd": 1, "dmg": 3, "hp": 2},
+    {"name": "Ghos", "img": "Ghos.png", "spd": 3, "dmg": 2, "hp": 2}
 ]
 personaliii = ["Chrabry", "Zbabeli", "Mrštný", "Obžerství"   ]
 nemoci = []
@@ -136,6 +137,7 @@ minik = QPushButton(novak)
 minik.hide()
 minik.setIcon(QIcon(r"MinLilIdio.png"))
 minik.move(204,0)
+minik.setToolTip("Miník")
 minik.setFixedSize(160, 360)
 minik.setIconSize(QSize(180, 380))
 minik.setStyleSheet("""
@@ -187,6 +189,7 @@ um.move(-20,135)
 um.setIcon(QIcon(r"UzuriMazura.png"))
 um.hide()
 um.setFixedSize(220, 180)
+um.setToolTip("Uzuri Mazura")
 um.setIconSize(QSize(220, 300))
 um.setStyleSheet("""
 QPushButton {
@@ -322,7 +325,7 @@ def zmrzf():
 
 def Switcharoonie(enemy=None):
     global Iterator
-    global hlad
+    global hlad, burt, minarickabytost
     if Iterator == 1:
         HPBar.setIcon(QIcon(f"1.png"))
         vajco.setIcon(QIcon("MinEgg.png"))
@@ -330,9 +333,13 @@ def Switcharoonie(enemy=None):
         minik.hide()
     elif Iterator == 2:
         vajco.hide()
-        um.hide()
+        if not minarickabytost:
+            um.hide()
         if len(nemoci) > 0:
             minik.setIcon(QIcon(f"Min{random.choice(nemoci)}.png"))
+            return
+        elif burt:
+            minik.setIcon(QIcon("Burt.png"))
             return
         elif hlad > 0:
             minik.setIcon(QIcon("MinHungry.png"))
@@ -352,7 +359,7 @@ def Switcharoonie(enemy=None):
             minik.setIcon(QIcon(f"Min{povaha}.png"))
            
 ZStoggle = 0
-
+burt = False
 def zneskodnit(enemy):
     enemy["alive"] = False
     widget = enemy.get("widget")
@@ -422,11 +429,13 @@ def sezer(item):
     item["count"] = item["count"] - 1
     HPBar.setIcon(QIcon(f"{Hp}.png"))
     if hlad < 6:
-            HUBar.setIcon(QIcon(f"{hlad+1}H.png"))
-            if hlad < -3:
-                minik.setIcon(QIcon("Burt.png"))
-            if hlad == 5:
-                HPBar.setIcon(QIcon(f"{hlad-3}.png"))
+            if hlad > 0:
+                HUBar.setIcon(QIcon(f"{hlad+1}H.png"))
+            elif hlad < -2:
+                global burt
+                burt = True
+            elif hlad == 0:
+                HUBar.setIcon(QIcon(f"1H.png"))
     zmena()         
     Iterator = 2
     Switcharoonie()
@@ -440,7 +449,7 @@ def chcipl():
     global povaha
     global Hp
     global Iterator
-    global ZStoggle, agedotaznik
+    global ZStoggle, burt, agedotaznik, nemoci
     hybaj.stop()
     ani.stop()
     spawner.stop()
@@ -448,44 +457,47 @@ def chcipl():
     cyklus.stop()
     ZStoggle = 0
     start = False
-    HPBar.setIcon(QIcon(f"5.png"))
-    vajco.setIcon(QIcon(f"GunPoint.png"))
-    minik.setIcon(QIcon(r"Mrtvej.png"))
+    del nemoci[:]
+    HPBar.setIcon(QIcon("5.png"))
+    vajco.setIcon(QIcon("GunPoint.png"))
+    minik.setIcon(QIcon("Mrtvej.png"))
     povaha = random.choice(personaliii)
     print(povaha)
+    agedotaznik = False
     hatchlvl = 0
     hlad = 0
     age = 0
     Hp = 1
+    burt = False
     agedotaznik = False
     Iterator = 1
     QTimer.singleShot(300,Switcharoonie)
 
 nabytky = [
-    {"name": "Maple", "img": "PotMaple.png", "y": 211, "x": 240, "price": 150, "type": 1, "count": 0, "object": None},
-    {"name": "NastenkaOpic", "img": "MinApe.png", "y": 211, "x": 340, "price": 120, "type": 2, "count": 0, "object": None},
+    {"name": "Japonský Javor", "img": "PotMaple.png", "y": 211, "x": 240, "price": 150, "type": 1, "count": 0, "object": None},
+    {"name": "Plakát", "img": "MinApe.png", "y": 211, "x": 340, "price": 120, "type": 2, "count": 0, "object": None},
     {"name": "Bonsai", "img": "PotBonsai.png", "y": 140, "x": 340, "price": 150, "type": 1, "count": 0, "object": None},
     {"name": "Bulba", "img": "PotBulbus.png", "y": 211, "x": 140, "price": 150, "type": 1, "count": 0, "object": None},
-    {"name": "NastenkaVseho", "img": "Borda.png", "y": 140, "x": 240, "price": 150, "type": 2, "count": 0, "object": None},
-    {"name": "SlavaArmenii", "img": "AtZijeArcach.png", "y": 140, "x": 140, "price": 120, "type": 2, "count": 0, "object": None}
+    {"name": "Nástěnka Slávy", "img": "Borda.png", "y": 140, "x": 240, "price": 150, "type": 2, "count": 0, "object": None},
+    {"name": "Arménská Vlajka", "img": "AtZijeArcach.png", "y": 140, "x": 140, "price": 120, "type": 2, "count": 0, "object": None}
 ]
 
 jidlicka = [
-    {"name": "Horkopes", "img": "Horkopes.png", "y": 211, "x": 240, "price": 50, "count": 0},
+    {"name": "Hot Dawg", "img": "Horkopes.png", "y": 211, "x": 240, "price": 50, "count": 0},
     {"name": "Pizza", "img": "Pizza.png", "y": 211, "x": 340, "price": 40, "count": 0},
-    {"name": "Nugetky", "img": "Nugetky.png", "y": 140, "x": 340, "price": 35, "count": 2},
-    {"name": "Monster", "img": "Monster.png", "y": 211, "x": 140, "price": 45, "count": 0},
-    {"name": "Drogy", "img": "Drogy.png", "y": 140, "x": 240, "price": 50, "count": 0},
-    {"name": "Vroci", "img": "Vroci.png", "y": 140, "x": 140, "price": 20, "count": 1}
+    {"name": "Nugetka", "img": "Nugetky.png", "y": 140, "x": 340, "price": 30, "count": 2},
+    {"name": "Bílý Monster", "img": "Monster.png", "y": 211, "x": 140, "price": 50, "count": 0},
+    {"name": "Ibalgin", "img": "Drogy.png", "y": 140, "x": 240, "price": 50, "count": 0},
+    {"name": "Teplá Voda", "img": "Vroci.png", "y": 140, "x": 140, "price": 20, "count": 1}
 ]
 
 zmrzliny = [
-    {"name": "Cookie", "img": "ZCookie.png", "y": 211, "x": 240, "price": 30, "count": 0},
-    {"name": "Ruska", "img": "ZPycknn.png", "y": 211, "x": 340, "price": 30, "count": 0},
-    {"name": "Mint", "img": "ZMint.png", "y": 150, "x": 340, "price": 30, "count": 0},
-    {"name": "Vanila", "img": "ZVanila.png", "y": 211, "x": 140, "price": 30, "count": 0},
-    {"name": "Limon", "img": "ZLimon.png", "y": 150, "x": 240, "price": 30, "count": 0},
-    {"name": "Choco", "img": "ZChoco.png", "y": 150, "x": 140, "price": 30, "count": 0}
+    {"name": "Cookie Dough", "img": "ZCookie.png", "y": 211, "x": 240, "price": 30, "count": 0},
+    {"name": "Ruská Zmrzlina", "img": "ZPycknn.png", "y": 211, "x": 340, "price": 30, "count": 0},
+    {"name": "Chocolate Chip Mint", "img": "ZMint.png", "y": 150, "x": 340, "price": 30, "count": 0},
+    {"name": "Vanilková", "img": "ZVanila.png", "y": 211, "x": 140, "price": 30, "count": 0},
+    {"name": "Citronová", "img": "ZLimon.png", "y": 150, "x": 240, "price": 30, "count": 0},
+    {"name": "Čokoládová", "img": "ZChoco.png", "y": 150, "x": 140, "price": 30, "count": 0}
 ]
 
 multi = 1
@@ -558,7 +570,8 @@ def aktivujeme(item):
         hlad -= 1
         if hlad < 0:
             hlad = 0
-        HUBar.setIcon(QIcon(f"{hlad+1}H.png"))
+        if hlad <= 5 and hlad > 0:
+            HUBar.setIcon(QIcon(f"{hlad+1}H.png"))
         zmena()
         update(UIstate)
 
@@ -575,6 +588,7 @@ for item in jidlicka:
     }
     """)
     label = QLabel(novak)
+    btn.setToolTip(item["name"])
     label.setGeometry(item["x"] + 85, item["y"], 140, 50)
     label.setStyleSheet("color: black; font-size: 14px; background: transparent;")
     label.hide()
@@ -596,6 +610,7 @@ for item in zmrzliny:
     }
     """)
     label = QLabel(novak)
+    btn.setToolTip(item["name"])
     label.setGeometry(item["x"] + 85, item["y"], 140, 50)
     label.setStyleSheet("color: black; font-size: 14px; background: transparent;")
     label.hide()
@@ -631,7 +646,9 @@ def updateenvir():
         
 def koupimesikocicku(item):
     global mon
-    global multi
+    global multi, envir
+    if envir == "Hriste":
+        return
     if multi == 0.5:
         multiv = 15
     else:
@@ -657,6 +674,7 @@ for item in nabytky:
     btn.setGeometry(item["x"], item["y"], 115, 50)
     btn.setIconSize(QSize(60,60))
     btn.hide()
+    btn.setToolTip(item["name"])
     btn.clicked.connect(lambda _, i=item: koupimesikocicku(i))
     btn.setStyleSheet("""
     QPushButton {
@@ -711,6 +729,7 @@ def consola():
     global mon
     global nemoci
     global Iterator
+    zeme = ["Artsakh", "Tibet", "Palestine", "Uyghurstan", "Rojava"]
     if RepublikaTaiwan > 29:
         console.setIcon(QIcon("Console.png"))
         if inputer.isVisible():
@@ -725,7 +744,14 @@ def consola():
                 print(nemoci)
                 Iterator = 2
                 Switcharoonie()
-            elif text == "Artsakh" or text == "Palestine":
+            elif text in zeme:
+                for jini in nabytky:
+                    if jini["type"] == item["type"] and jini != item:
+                        jini["count"] = 0
+                        if jini["object"]:
+                            jini["object"].hide()
+                            jini["object"].deleteLater()
+                            jini["object"] = None
                 obj = QPushButton(novak)
                 obj.setIcon(QIcon(f"{text}.png"))
                 obj.move(150, 45)
@@ -744,6 +770,8 @@ def consola():
             elif text == "UM" or text == "um" or text == "Uzuri Mazura" or text == "uzuri mazura":
                 global minarickabytost
                 minarickabytost = True
+            elif text == "Hlad" or text == "Vyhladov":
+                chud()
             inputer.hide()
             inputer.clear()
         else:
@@ -780,19 +808,23 @@ def utok(enemy):
         minik.setIcon(QIcon("MinAttack.png"))
         Iterator = 3
         QTimer.singleShot(300, lambda e=enemy: Switcharoonie(e))
+        Hp -= damage
+        if Hp < 5:
+            HPBar.setIcon(QIcon(f"{Hp}.png"))
         return
-    Hp += damage
+    if enemy in enemies:
+        Hp += damage
+        HPBar.setIcon(QIcon(f"{Hp}.png"))
     if Hp > 4:
         Hp = 5
         chcipl()
-    HPBar.setIcon(QIcon(f"{Hp}.png"))
     zneskodnit(enemy)
     if enemy in enemies:
         enemies.remove(enemy)
 
 def spawnzombi():
     if random.randint(1,3) == 3:
-        data = random.choice(enemak[2:4])
+        data = random.choice(enemak[2:5])
     else:
         data = random.choice(enemak[0:2])
     ene = QPushButton(novak)
@@ -862,6 +894,8 @@ def piskoviste():
     global start
     global lock
     global artsakh
+    if povaha == "Zbabeli":
+        return
     if not start:
         return
     if lock and not artsakh == 1:
@@ -957,17 +991,19 @@ def schovse():
             else:
                 obj.show()
 
-def navod(Type):
+def navod(Type = None):
     global envir
     global start
     global stav
-    global event, minarickabytost
+    global event, minarickabytost, lock
     if not event == "RN":
         pejsek = ""
     else:
         pejsek = event
     if lock and not Type == "Exit":
         return
+    if Type == "Exit":
+        lock = False
     if not start:
         return
     if stav == "noc":
@@ -1025,8 +1061,6 @@ def hybame():
 
             if ey < my:
                 ey += spd
-            elif ey > my:
-                ey -= spd
             ene.move(ex, ey)
         if abs(ex - mx) < 30 and abs(ey - my) < 30:
             toremove.append(enemy)
@@ -1136,32 +1170,34 @@ def chud():
     global mon
     global stav
     global nemoci
-    global Iterator
+    global Iterator, Hp
     if not start:
-        return
-    if lock:
         return
     if stav == "noc" and not event == "E":
         return
     lock = True
-    hlad += 1
-    Iterator = 2
-    Switcharoonie()
-    if hlad < 6:
-        HUBar.setIcon(QIcon(f"{hlad+1}H.png"))
-        if hlad == 5:
-            HPBar.setIcon(QIcon(f"{hlad-3}.png"))
+    if hlad <= 3:
+        hlad += 1
+        if hlad > 0:
+            HUBar.setIcon(QIcon(f"{hlad+1}H.png"))
     else:
-        if not hlad == 8:
-            HPBar.setIcon(QIcon(f"{hlad-3}.png"))
-        else:
+        Hp += 1
+        HPBar.setIcon(QIcon(f"{Hp}.png"))
+        if Hp >= 5:
+            chcipl()
+    if len(nemoci) > 0:
+        Hp += 1
+        HPBar.setIcon(QIcon(f"{Hp}.png"))
+        if Hp >= 5:
             chcipl()
     if random.randint(1,15) == 3:
-        mon = mon + random.randint(10,50)
+        mon = mon + random.randint(10,35)
         zmena()
     if random.randint(1, 20) == 3:
         nemoci.append(random.choice(["Demence", "Nemoc", "Nemoc Šílených Krav", "ModraNemoc"]))
         print(nemoci)
+    Iterator = 2
+    Switcharoonie()
     lock = False
 
 konik = 10000
@@ -1195,8 +1231,10 @@ def day_night():
         kladno.stop()
         noc.show()
         stav = "noc"
-        nocniteror = ["B", "BL", "E"]
-        if random.randint(1,2) == 2:
+        nocniteror = ["B", "BL", "E", "UM"]
+        if prokleti:
+            event = "B"
+        elif random.randint(1,2) == 2 and not event == "B":
             event = random.choice(nocniteror)
         else:
             event = "N"
@@ -1205,14 +1243,14 @@ def day_night():
     border-image: url("Pikij{event}.png");
 }}
 """)
-        if prokleti:
-            event == "B"
         if event == "B":
             spawner.start(random.randint(6000,10000))
         elif event == "BL":
             multi = 0.5
         elif event == "E":
             multi = 1.5
+        elif event == "UM":
+            multi = 1
         else:
             multi = 1
             cyklus.stop()
@@ -1242,7 +1280,7 @@ def day_night():
 """)
         
         noc.hide()
-        mon = mon + random.randint(20,70)
+        mon = mon + random.randint(60,133)
         zmena()
 
 
@@ -1261,7 +1299,9 @@ def Eggon():
 
 def hrajsi():
     global konik
-    global lock
+    global lock, povaha
+    if povaha == "Zbabeli":
+        return
     if lock and konik == 10000:
         return
     if konik == 10000:
