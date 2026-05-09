@@ -183,7 +183,7 @@ QPushButton:hover {
     border-image: url("FrigiderB.png");
 }
 """)
-minarickabytost = False
+minarickabytost = "False"
 um = QPushButton(novak)
 um.move(-20,135)
 um.setIcon(QIcon(r"UzuriMazura.png"))
@@ -325,16 +325,18 @@ def zmrzf():
 
 def Switcharoonie(enemy=None):
     global Iterator
-    global hlad, burt, minarickabytost
+    global hlad, burt, minarickabytost, hatchlvl
     if Iterator == 1:
         HPBar.setIcon(QIcon(f"1.png"))
         vajco.setIcon(QIcon("MinEgg.png"))
         vajco.show()
         minik.hide()
     elif Iterator == 2:
+        hatchlvl = 10000
         vajco.hide()
-        if not minarickabytost:
-            um.hide()
+        if minarickabytost == "False":
+            um.setIcon(QIcon("UzuriDead.png"))
+            minarickabytost = "Dead"
         if len(nemoci) > 0:
             minik.setIcon(QIcon(f"Min{random.choice(nemoci)}.png"))
             return
@@ -482,6 +484,15 @@ nabytky = [
     {"name": "Arménská Vlajka", "img": "AtZijeArcach.png", "y": 140, "x": 140, "price": 120, "type": 2, "count": 0, "object": None}
 ]
 
+nabytkysp = [
+    {"name": "Isopod", "img": "Isopod.png", "y": 211, "x": 240, "price": 150, "type": 3, "count": 0, "object": None},
+    {"name": "Hanami Plakát", "img": "Hanami.png", "y": 211, "x": 340, "price": 120, "type": 2, "count": 0, "object": None},
+    {"name": "X", "img": "PotBonsai.png", "y": 140, "x": 340, "price": 150, "type": 1, "count": 0, "object": None},
+    {"name": "Podstavec 1984", "img": "1984.png", "y": 211, "x": 140, "price": 150, "type": 1, "count": 0, "object": None},
+    {"name": "X", "img": "Borda.png", "y": 140, "x": 240, "price": 150, "type": 2, "count": 0, "object": None},
+    {"name": "Evropská Vlajka", "img": "EU.png", "y": 140, "x": 140, "price": 120, "type": 2, "count": 0, "object": None}
+]
+
 jidlicka = [
     {"name": "Hot Dawg", "img": "Horkopes.png", "y": 211, "x": 240, "price": 50, "count": 0},
     {"name": "Pizza", "img": "Pizza.png", "y": 211, "x": 340, "price": 40, "count": 0},
@@ -500,12 +511,24 @@ zmrzliny = [
     {"name": "Čokoládová", "img": "ZChoco.png", "y": 150, "x": 140, "price": 30, "count": 0}
 ]
 
+special = [
+    {"name": "Svěcená Voda", "img": "Holy.png", "y": 211, "x": 240, "price": 50, "count": 0},
+    {"name": "Hlaveň Bohů", "img": "Pizza.png", "y": 211, "x": 340, "price": 150, "count": 0},
+    {"name": "Nugetka", "img": "Nugetky.png", "y": 140, "x": 340, "price": 30, "count": 2},
+    {"name": "Bílý Monster", "img": "Monster.png", "y": 211, "x": 140, "price": 50, "count": 0},
+    {"name": "Ibalgin", "img": "Drogy.png", "y": 140, "x": 240, "price": 50, "count": 0},
+    {"name": "Teplá Voda", "img": "Vroci.png", "y": 140, "x": 140, "price": 20, "count": 1}
+]
 multi = 1
 def update(mode):
     global event
     global multi
-    if mode == "Led":
-        for item in jidlicka:
+    if mode == "Led" or mode == "Led2":
+        if mode == "Led":
+            marakuja = jidlicka
+        else:
+            marakuja = special
+        for item in marakuja:
             if event == "BL" or event == "E":
                 item["label"].setText(f"{item['price']*multi}$!")
             else:
@@ -530,6 +553,9 @@ def update(mode):
                 item["label"].setText(f"{item['price']+40}$")
             else:
                 item["label"].setText(f"{item['price']}$")
+    elif mode == "NakupSP":
+        for item in nabytkysp:
+            item["label"].setText(f"{item['price']}$")
    
 def HorsiNezFilipTurekOtaznik(item):
     global mon
@@ -537,6 +563,12 @@ def HorsiNezFilipTurekOtaznik(item):
     if mon < item["price"] * multi:
         return
     mon -= item["price"] * multi
+    for jidlo in jidlicka:
+        if jidlo["name"] == item["name"]:
+            jidlo["count"] += 1
+            break
+    else:
+        item["count"] += 1
     item["count"] += 1
     update(UIstate)
     zmena()
@@ -619,16 +651,59 @@ for item in zmrzliny:
     item["label"] = label
     btn.clicked.connect(lambda _, i=item: aktivujeme(i))
 
+for item in special:
+    btn = QPushButton(novak)
+    btn.setIcon(QIcon(item["img"]))
+    btn.setGeometry(item["x"], item["y"], 115, 50)
+    btn.setIconSize(QSize(60,60))
+    btn.hide()
+    btn.setStyleSheet("""
+    QPushButton {
+        border: none;
+        background: transparent;
+    }
+    """)
+    label = QLabel(novak)
+    btn.setToolTip(item["name"])
+    label.setGeometry(item["x"] + 85, item["y"], 140, 50)
+    label.setStyleSheet("color: black; font-size: 14px; background: transparent;")
+    label.hide()
+    label.setAttribute(QtCore.Qt.WA_TransparentForMouseEvents)
+    item["button"] = btn
+    item["label"] = label
+    btn.clicked.connect(lambda _, i=item: volbyvarmenii(i))
+
+def Cratur(item):
+    obj = item.get("object")
+    if obj is None:
+        return
+    if item["count"] <= 0:
+        return
+    frame = item.get("frame", 1)
+    matarael = item['img'].replace(".png", "")
+    obj.setIcon(QIcon(f"{matarael}{frame}.png"))
+    frame += 1
+    if frame > 5:
+        frame = 1
+    item["frame"] = frame
+    QTimer.singleShot(150, lambda i=item: Cratur(i))
+
 def updateenvir():
-    for item in nabytky:
+    for item in nabytky + nabytkysp:
         if item["count"] > 0:
             if item["object"] is None:
                 obj = QPushButton(novak)
                 obj.setIcon(QIcon(item["img"]))
                 if item["type"] == 1:
                     obj.move(56, 73)
-                else:
+                elif item["type"] == 2:
                     obj.move(150, 45)
+                else:
+                    matarael = item['img'].replace(".png", "")
+                    obj.setIcon(QIcon(f"{matarael}1.png"))
+                    obj.move(300, 76)
+                    item["frame"] = 1
+                    QTimer.singleShot(150, lambda i=item: Cratur(i))
                 obj.setIconSize(QSize(140,140))
                 obj.setAttribute(QtCore.Qt.WA_TransparentForMouseEvents)
                 obj.show()
@@ -656,7 +731,7 @@ def koupimesikocicku(item):
     if mon < item["price"] - multiv:
         return
     mon = mon - (item["price"] - multiv)
-    for jini in nabytky:
+    for jini in nabytky + nabytkysp:
         if jini["type"] == item["type"] and jini != item:
             jini["count"] = 0
             if jini["object"]:
@@ -669,6 +744,28 @@ def koupimesikocicku(item):
     updateenvir()
 
 for item in nabytky:
+    btn = QPushButton(novak)
+    btn.setIcon(QIcon(item["img"]))
+    btn.setGeometry(item["x"], item["y"], 115, 50)
+    btn.setIconSize(QSize(60,60))
+    btn.hide()
+    btn.setToolTip(item["name"])
+    btn.clicked.connect(lambda _, i=item: koupimesikocicku(i))
+    btn.setStyleSheet("""
+    QPushButton {
+        border: none;
+        background: transparent;
+    }
+    """)
+    label = QLabel(novak)
+    label.setGeometry(item["x"] + 85, item["y"], 140, 50)
+    label.setStyleSheet("color: black; font-size: 14px; background: transparent;")
+    label.hide()
+    label.setAttribute(QtCore.Qt.WA_TransparentForMouseEvents)
+    item["button"] = btn
+    item["label"] = label
+
+for item in nabytkysp:
     btn = QPushButton(novak)
     btn.setIcon(QIcon(item["img"]))
     btn.setGeometry(item["x"], item["y"], 115, 50)
@@ -728,8 +825,9 @@ def consola():
     global RepublikaTaiwan
     global mon
     global nemoci
-    global Iterator
+    global Iterator, event
     zeme = ["Artsakh", "Tibet", "Palestine", "Uyghurstan", "Rojava"]
+    nini = ["UM", "B", "BL", "E"]
     if RepublikaTaiwan > 29:
         console.setIcon(QIcon("Console.png"))
         if inputer.isVisible():
@@ -745,7 +843,7 @@ def consola():
                 Iterator = 2
                 Switcharoonie()
             elif text in zeme:
-                for jini in nabytky:
+                for jini in nabytky + nabytkysp:
                     if jini["type"] == item["type"] and jini != item:
                         jini["count"] = 0
                         if jini["object"]:
@@ -769,9 +867,12 @@ def consola():
     """)
             elif text == "UM" or text == "um" or text == "Uzuri Mazura" or text == "uzuri mazura":
                 global minarickabytost
-                minarickabytost = True
+                minarickabytost = "True"
             elif text == "Hlad" or text == "Vyhladov":
                 chud()
+            elif text in nini:
+                day_night()
+                event = text
             inputer.hide()
             inputer.clear()
         else:
@@ -845,7 +946,7 @@ def spawnzombi():
     ene.show()
     ene.lower()
     global envir
-    for item in nabytky:
+    for item in nabytky + nabytkysp:
         obj = item.get("object")
         if obj:
             obj.lower()
@@ -983,7 +1084,7 @@ def zmrdetaktydostanes():
 
 def schovse():
     global envir
-    for item in nabytky:
+    for item in nabytky + nabytkysp:
         obj = item.get("object")
         if obj:
             if envir == "Hriste":
@@ -1021,9 +1122,12 @@ def navod(Type = None):
         psik.show()
         hopkun.show()
         schovse()
-        if minarickabytost:
+        if minarickabytost == "True":
             um.show()
             um.setIcon(QIcon(f"UzuriMazura.png"))
+        elif minarickabytost == "Dead":
+            um.show()
+            um.setIcon(QIcon(f"UzuriDead.png"))
         if event == "Z":
             zmrz.show()
     else:
@@ -1095,7 +1199,7 @@ def zastrel():
 
 def nakupy():
     global LedSwitch
-    global UIstate
+    global UIstate, event
     if UIstate == "Led" or UIstate == "Hamu":
         return
     if LedSwitch == 0:
@@ -1103,10 +1207,18 @@ def nakupy():
         UIstate = "Nakup"
         menuexit.show()
         frigmenu.show()
-        for item in nabytky:
-            item["button"].show()
-            item["label"].show()
-        update("Nakup")
+        if not event == "UM":
+            for item in nabytky:
+                item["button"].show()
+                item["label"].show()
+        else:
+            for item in nabytkysp:
+                item["button"].show()
+                item["label"].show()
+        if not event == "UM":
+            update("Nakup")
+        else:
+            update("NakupSP")
         LedSwitch = 1
     else:
         UIstate = "X"
@@ -1114,6 +1226,9 @@ def nakupy():
         frigmenu.hide()
         menuexit.hide()
         for item in nabytky:
+            item["button"].hide()
+            item["label"].hide()
+        for item in nabytkysp:
             item["button"].hide()
             item["label"].hide()
         LedSwitch = 0
@@ -1266,8 +1381,8 @@ def day_night():
         psik = event
         if psik == "Z":
             psik = ""
-        if random.randint(1,20) == 5:
-            minarickabytost = True
+        if random.randint(1,20) == 5 and not minarickabytost == "Dead":
+            minarickabytost = "True"
             print("An Angel has descended from the heavens")
         Iterator = 2
         Switcharoonie()
@@ -1366,13 +1481,15 @@ def hatch():
 prokleti = False
 def umf():
     global hatchlvl, Iterator, minarickabytost, prokleti
+    if minarickabytost == "Dead":
+        return
     if not hatchlvl == 10:
         um.setIcon(QIcon("UzuriMazuraLay.png"))
     else:
         um.setIcon(QIcon("UzuriMazuraMurder.png"))
         Iterator = 2
         QTimer.singleShot(300,Switcharoonie)
-        minarickabytost = False
+        minarickabytost = "False"
         prokleti = True
 
 agedotaznik = False
@@ -1387,16 +1504,23 @@ def ageup():
 def led():
     global LedSwitch
     global lock
-    global UIstate
+    global UIstate, event
     if LedSwitch == 0:
         frigmenu.setIcon(QIcon(f"FrigiMenu.png"))
         UIstate = "Led"
         menuexit.show()
         frigmenu.show()
-        for item in jidlicka:
+        if event == "UM":
+            avocado = special
+        else:
+            avocado = jidlicka
+        for item in avocado:
             item["button"].show()
             item["label"].show()
-        update("Led")
+        if avocado == jidlicka:
+            update("Led")
+        else:
+            update("Led2")
         LedSwitch = 1
     else:
         UIstate = "X"
@@ -1404,6 +1528,9 @@ def led():
         frigmenu.hide()
         menuexit.hide()
         for item in jidlicka:
+            item["button"].hide()
+            item["label"].hide()
+        for item in special:
             item["button"].hide()
             item["label"].hide()
         LedSwitch = 0
@@ -1426,7 +1553,7 @@ RepublikaTaiwan = 0
 
 vajco.clicked.connect(hatch)
 minik.clicked.connect(ageup)
-#minik.clicked.connect(day_night)
+minik.clicked.connect(day_night)
 frig.clicked.connect(led)
 menuexit.clicked.connect(masa)
 hopkun.clicked.connect(hrajsi)
