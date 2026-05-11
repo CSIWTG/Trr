@@ -418,8 +418,6 @@ def sezer(item):
     elif item["name"] == "Ibalgin":
         if len(nemoci) > 0:
             nemoci.pop()
-            Iterator = 2
-            Switcharoonie()
         else:
             return
     elif item["name"] == "Teplá Voda":
@@ -429,11 +427,18 @@ def sezer(item):
             hlad = hlad - 1
         mon += 1
     elif item["name"] == "Svěcená Voda":
-        if hlad == 0 and not povaha == "Obžerství":
+        if (hlad == 0 and not povaha == "Obžerství") or prokleti:
             return
         hlad = hlad - 1
         mon += 1
         prokleti = False
+    elif item["name"] == "Zlatý Hotdog":
+        if hlad == 0:
+            return
+        hlad = 0
+        Hp = 1
+        if len(nemoci) > 0:
+            nemoci.pop()
     else:
         if hlad == 0 and not povaha == "Obžerství":
             return
@@ -462,7 +467,7 @@ def chcipl():
     global povaha
     global Hp
     global Iterator
-    global ZStoggle, burt, agedotaznik, nemoci, lock
+    global ZStoggle, burt, agedotaznik, nemoci, lock, prokleti
     hybaj.stop()
     ani.stop()
     spawner.stop()
@@ -481,6 +486,7 @@ def chcipl():
     hlad = 0
     age = 0
     Hp = 1
+    prokleti = False
     burt = False
     agedotaznik = False
     Iterator = 1
@@ -505,36 +511,36 @@ nabytkysp = [
 ]
 
 jidlicka = [
-    {"name": "Hot Dawg", "img": "Horkopes.png", "y": 211, "x": 240, "price": 50, "count": 0},
-    {"name": "Pizza", "img": "Pizza.png", "y": 211, "x": 340, "price": 40, "count": 0},
-    {"name": "Nugetka", "img": "Nugetky.png", "y": 140, "x": 340, "price": 30, "count": 2},
-    {"name": "Bílý Monster", "img": "Monster.png", "y": 211, "x": 140, "price": 50, "count": 0},
-    {"name": "Ibalgin", "img": "Drogy.png", "y": 140, "x": 240, "price": 50, "count": 0},
-    {"name": "Teplá Voda", "img": "Vroci.png", "y": 140, "x": 140, "price": 20, "count": 1}
+    {"name": "Hot Dawg", "img": "Horkopes.png", "y": 211, "x": 240, "price": 50, "count": 0, "lable": "Hot Dog\n+2 HP"},
+    {"name": "Pizza", "img": "Pizza.png", "y": 211, "x": 340, "price": 40, "count": 0, "lable": "Pizza\n-1 HU\n+1 HP"},
+    {"name": "Nugetka", "img": "Nugetky.png", "y": 140, "x": 340, "price": 30, "count": 2, "lable": "Nugetka\n-1 HU"},
+    {"name": "Bílý Monster", "img": "Monster.png", "y": 211, "x": 140, "price": 36, "count": 0, "lable": "Bílý Monster\n+1 HP"},
+    {"name": "Ibalgin", "img": "Drogy.png", "y": 140, "x": 240, "price": 50, "count": 0, "lable": "Ibalgin\n-1 Nemoc"},
+    {"name": "Teplá Voda", "img": "Vroci.png", "y": 140, "x": 140, "price": 20, "count": 1, "lable": "Teplá Voda\n50% -1 HU"}
 ]
 
 zmrzliny = [
-    {"name": "Cookie Dough", "img": "ZCookie.png", "y": 211, "x": 240, "price": 30, "count": 0},
-    {"name": "Ruská Zmrzlina", "img": "ZPycknn.png", "y": 211, "x": 340, "price": 30, "count": 0},
-    {"name": "Chocolate Chip Mint", "img": "ZMint.png", "y": 150, "x": 340, "price": 30, "count": 0},
-    {"name": "Vanilková", "img": "ZVanila.png", "y": 211, "x": 140, "price": 30, "count": 0},
-    {"name": "Citronová", "img": "ZLimon.png", "y": 150, "x": 240, "price": 30, "count": 0},
-    {"name": "Čokoládová", "img": "ZChoco.png", "y": 150, "x": 140, "price": 30, "count": 0}
+    {"name": "Cookie Dough", "img": "ZCookie.png", "y": 211, "x": 240, "price": 30, "count": 0, "lable": "Zmrzlina\n-1 HU"},
+    {"name": "Ruská Zmrzlina", "img": "ZPycknn.png", "y": 211, "x": 340, "price": 30, "count": 0, "lable": "Zmrzlina\n-1 HU"},
+    {"name": "Chocolate Chip Mint", "img": "ZMint.png", "y": 150, "x": 340, "price": 30, "count": 0, "lable": "Zmrzlina\n-1 HU"},
+    {"name": "Vanilková", "img": "ZVanila.png", "y": 211, "x": 140, "price": 30, "count": 0, "lable": "Zmrzlina\n-1 HU"},
+    {"name": "Citronová", "img": "ZLimon.png", "y": 150, "x": 240, "price": 30, "count": 0, "lable": "Zmrzlina\n-1 HU"},
+    {"name": "Čokoládová", "img": "ZChoco.png", "y": 150, "x": 140, "price": 30, "count": 0, "lable": "Zmrzlina\n-1 HU"}
 ]
 
 special = [
-    {"name": "Svěcená Voda", "img": "Holy.png", "y": 211, "x": 240, "price": 60, "count": 0},
-    {"name": "Hlaveň Bohů", "img": "GunHoly.png", "y": 211, "x": 340, "price": 150, "count": 0},
-    {"name": "Nugetka", "img": "Nugetky.png", "y": 140, "x": 340, "price": 30, "count": 2},
-    {"name": "Zlatý Hotdog", "img": "Godtog.png", "y": 211, "x": 140, "price": 150, "count": 0},
-    {"name": "Ibalgin", "img": "Drogy.png", "y": 140, "x": 240, "price": 50, "count": 0},
-    {"name": "Teplá Voda", "img": "Vroci.png", "y": 140, "x": 140, "price": 20, "count": 1}
+    {"name": "Svěcená Voda", "img": "Holy.png", "y": 211, "x": 240, "price": 50, "count": 0, "lable": "Svěcená Voda\n-1 HU\n-1 Prokletí"},
+    {"name": "Hlaveň Bohů", "img": "GunHoly.png", "y": 211, "x": 340, "price": 150, "count": 0, "lable": "Hlaveň Bohů\n+ Jeste Nevime"},
+    {"name": "Nugetka", "img": "Nugetky.png", "y": 140, "x": 340, "price": 30, "count": 2, "lable": "Nugetka\n-1 HU"},
+    {"name": "Zlatý Hotdog", "img": "Godtog.png", "y": 211, "x": 140, "price": 90, "count": 0, "lable": "Zlatý Hot Dog\n-Max HU\n+Max HP\n-1 Nemoc"},
+    {"name": "Ibalgin", "img": "Drogy.png", "y": 140, "x": 240, "price": 50, "count": 0, "lable": "Ibalgin\n-1 Nemoc"},
+    {"name": "Teplá Voda", "img": "Vroci.png", "y": 140, "x": 140, "price": 20, "count": 1, "lable": "Teplá Voda\n50% -1 HU"}
 ]
 
 unique = [
-    {"name": "Svěcená Voda", "img": "Holy.png", "y": 150, "x": 140, "price": 50, "count": 0},
-    {"name": "Hlaveň Bohů", "img": "GunHoly.png", "y": 150, "x": 240, "price": 150, "count": 0},
-    {"name": "Zlatý Hotdog", "img": "Godtog.png", "y": 150, "x": 340, "price": 100, "count": 0}
+    {"name": "Svěcená Voda", "img": "Holy.png", "y": 150, "x": 140, "price": 50, "count": 0, "lable": "Svěcená Voda\n-1 HU\n-1 Prokletí"},
+    {"name": "Hlaveň Bohů", "img": "GunHoly.png", "y": 150, "x": 240, "price": 150, "count": 0, "lable": "Hlaveň Bohů\n+ Jeste Nevime"},
+    {"name": "Zlatý Hotdog", "img": "Godtog.png", "y": 150, "x": 340, "price": 90, "count": 0, "lable": "Zlatý Hot Dog\n-Max HU\n+Max HP\n-1 Nemoc"}
 ]
 
 multi = 1
@@ -652,7 +658,7 @@ for item in jidlicka:
     }
     """)
     label = QLabel(novak)
-    btn.setToolTip(item["name"])
+    btn.setToolTip(item["lable"])
     label.setGeometry(item["x"] + 85, item["y"], 140, 50)
     label.setStyleSheet("color: black; font-size: 14px; background: transparent;")
     label.hide()
@@ -674,7 +680,7 @@ for item in zmrzliny:
     }
     """)
     label = QLabel(novak)
-    btn.setToolTip(item["name"])
+    btn.setToolTip(item["lable"])
     label.setGeometry(item["x"] + 85, item["y"], 140, 50)
     label.setStyleSheet("color: black; font-size: 14px; background: transparent;")
     label.hide()
@@ -696,7 +702,7 @@ for item in special + unique:
     }
     """)
     label = QLabel(novak)
-    btn.setToolTip(item["name"])
+    btn.setToolTip(item["lable"])
     label.setGeometry(item["x"] + 85, item["y"], 140, 50)
     label.setStyleSheet("color: black; font-size: 14px; background: transparent;")
     label.hide()
@@ -1393,6 +1399,8 @@ def day_night():
             event = random.choice(nocniteror)
         else:
             event = "N"
+        if prokleti and random.randint(1,4) == 3:
+            event = "UM"
         novak.setStyleSheet(f"""
 #Min {{
     border-image: url("Pikij{event}.png");
@@ -1577,18 +1585,15 @@ def led():
             item["label"].hide()
  
 def masa():
-    global UIstate
+    global UIstate, LedSwitch
     if not frigmenu.isVisible():
         return
-    if UIstate == "Hamu":
-        hamu_papu()
-    elif UIstate == "Led":
-        led()
-    elif UIstate == "Nakup":
-        nakupy()
-    else:
-        zmrzf()
-    for item in special + jidlicka + unique:
+    UIstate = "X"
+    menuexit.hide()
+    frigmenu.hide()
+    frip.hide()
+    LedSwitch = 0
+    for item in special + jidlicka + unique + zmrzliny:
         item["button"].hide()
         item["label"].hide()       
 
