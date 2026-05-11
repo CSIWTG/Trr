@@ -183,7 +183,7 @@ QPushButton:hover {
     border-image: url("FrigiderB.png");
 }
 """)
-minarickabytost = "False"
+minarickabytost = "Glep"
 um = QPushButton(novak)
 um.move(-20,135)
 um.setIcon(QIcon(r"UzuriMazura.png"))
@@ -205,6 +205,7 @@ lajna.move((600 - lajna.width()) // 2, 5)
  
 def zmena():
     lajna.setText(f"{mon:g}")
+    lajna.adjustSize()
  
 HPBar = QPushButton(novak)
 HPBar.setIcon(QIcon(r"1.png"))
@@ -325,12 +326,16 @@ def zmrzf():
 
 def Switcharoonie(enemy=None):
     global Iterator
-    global hlad, burt, minarickabytost, hatchlvl
+    global hlad, burt, minarickabytost, hatchlvl, lock
     if Iterator == 1:
         HPBar.setIcon(QIcon(f"1.png"))
         vajco.setIcon(QIcon("MinEgg.png"))
+        HUBar.setIcon(QIcon("1H.png"))
+        hatchlvl = 0
+        lock = False
         vajco.show()
         minik.hide()
+        print(hatchlvl)
     elif Iterator == 2:
         hatchlvl = 10000
         vajco.hide()
@@ -371,10 +376,10 @@ def zneskodnit(enemy):
     enemy["widget"] = None
 
 def sezer(item):
-    global Hp, hlad, UIstate, Iterator, povaha, mon
+    global Hp, hlad, UIstate, Iterator, povaha, mon, prokleti
     if item["count"] <= 0:
         return
-    if item["name"] == "Horkopes":
+    if item["name"] == "Hot Dawg":
         if hlad == 0 and not povaha == "Obžerství":
             return
         if not povaha == "Obžerství":
@@ -399,30 +404,36 @@ def sezer(item):
                 mon += 1
             else:
                 return
-    elif item["name"] == "Nugetky":
+    elif item["name"] == "Nugetka":
         if hlad == 0 and not povaha == "Obžerství":
             return
         hlad = hlad - 1
         mon += 1
-    elif item["name"] == "Monster":
+    elif item["name"] == "Bílý Monster":
         if not Hp == 1:
             Hp = Hp - 1
             mon += 1
         else:
             return
-    elif item["name"] == "Drogy":
+    elif item["name"] == "Ibalgin":
         if len(nemoci) > 0:
             nemoci.pop()
             Iterator = 2
             Switcharoonie()
         else:
             return
-    elif item["name"] == "Vroci":
+    elif item["name"] == "Teplá Voda":
         if hlad == 0 and not povaha == "Obžerství":
             return
         if random.randint(1,2) == 2:
             hlad = hlad - 1
         mon += 1
+    elif item["name"] == "Svěcená Voda":
+        if hlad == 0 and not povaha == "Obžerství":
+            return
+        hlad = hlad - 1
+        mon += 1
+        prokleti = False
     else:
         if hlad == 0 and not povaha == "Obžerství":
             return
@@ -451,7 +462,7 @@ def chcipl():
     global povaha
     global Hp
     global Iterator
-    global ZStoggle, burt, agedotaznik, nemoci
+    global ZStoggle, burt, agedotaznik, nemoci, lock
     hybaj.stop()
     ani.stop()
     spawner.stop()
@@ -485,11 +496,11 @@ nabytky = [
 ]
 
 nabytkysp = [
-    {"name": "Isopod", "img": "Isopod.png", "y": 211, "x": 240, "price": 150, "type": 3, "count": 0, "object": None},
+    {"name": "Isopod", "img": "Isopod.png", "y": 211, "x": 240, "price": 170, "type": 3, "count": 0, "object": None},
     {"name": "Hanami Plakát", "img": "Hanami.png", "y": 211, "x": 340, "price": 120, "type": 2, "count": 0, "object": None},
-    {"name": "X", "img": "PotBonsai.png", "y": 140, "x": 340, "price": 150, "type": 1, "count": 0, "object": None},
+    {"name": "Humři", "img": "Lobster.png", "y": 140, "x": 340, "price": 170, "type": 3, "count": 0, "object": None},
     {"name": "Podstavec 1984", "img": "1984.png", "y": 211, "x": 140, "price": 150, "type": 1, "count": 0, "object": None},
-    {"name": "X", "img": "Borda.png", "y": 140, "x": 240, "price": 150, "type": 2, "count": 0, "object": None},
+    {"name": "Krill", "img": "Krill.png", "y": 140, "x": 240, "price": 170, "type": 3, "count": 0, "object": None},
     {"name": "Evropská Vlajka", "img": "EU.png", "y": 140, "x": 140, "price": 120, "type": 2, "count": 0, "object": None}
 ]
 
@@ -512,22 +523,31 @@ zmrzliny = [
 ]
 
 special = [
-    {"name": "Svěcená Voda", "img": "Holy.png", "y": 211, "x": 240, "price": 50, "count": 0},
-    {"name": "Hlaveň Bohů", "img": "Pizza.png", "y": 211, "x": 340, "price": 150, "count": 0},
+    {"name": "Svěcená Voda", "img": "Holy.png", "y": 211, "x": 240, "price": 60, "count": 0},
+    {"name": "Hlaveň Bohů", "img": "GunHoly.png", "y": 211, "x": 340, "price": 150, "count": 0},
     {"name": "Nugetka", "img": "Nugetky.png", "y": 140, "x": 340, "price": 30, "count": 2},
-    {"name": "Bílý Monster", "img": "Monster.png", "y": 211, "x": 140, "price": 50, "count": 0},
+    {"name": "Zlatý Hotdog", "img": "Godtog.png", "y": 211, "x": 140, "price": 150, "count": 0},
     {"name": "Ibalgin", "img": "Drogy.png", "y": 140, "x": 240, "price": 50, "count": 0},
     {"name": "Teplá Voda", "img": "Vroci.png", "y": 140, "x": 140, "price": 20, "count": 1}
 ]
+
+unique = [
+    {"name": "Svěcená Voda", "img": "Holy.png", "y": 150, "x": 140, "price": 50, "count": 0},
+    {"name": "Hlaveň Bohů", "img": "GunHoly.png", "y": 150, "x": 240, "price": 150, "count": 0},
+    {"name": "Zlatý Hotdog", "img": "Godtog.png", "y": 150, "x": 340, "price": 100, "count": 0}
+]
+
 multi = 1
 def update(mode):
     global event
     global multi
-    if mode == "Led" or mode == "Led2":
+    if mode == "Led" or mode == "Led2" or mode == "Led3":
         if mode == "Led":
             marakuja = jidlicka
-        else:
+        elif mode == "Led2":
             marakuja = special
+        else:
+            marakuja = unique
         for item in marakuja:
             if event == "BL" or event == "E":
                 item["label"].setText(f"{item['price']*multi}$!")
@@ -544,6 +564,9 @@ def update(mode):
             item["label"].setText(f"({item['count']})")
     elif mode == "Zimi":
         for item in zmrzliny:
+            item["label"].setText(f"({item['count']})")
+    elif mode == "Gouda":
+        for item in unique:
             item["label"].setText(f"({item['count']})")
     elif mode == "Nakup":
         for item in nabytky:
@@ -563,13 +586,22 @@ def HorsiNezFilipTurekOtaznik(item):
     if mon < item["price"] * multi:
         return
     mon -= item["price"] * multi
-    for jidlo in jidlicka:
-        if jidlo["name"] == item["name"]:
-            jidlo["count"] += 1
-            break
-    else:
+    oddelene2 = ["Hlaveň Bohů", "Zlatý Hotdog", "Svěcená Voda"]
+    oddelene = ["Nugetka", "Ibalgin", "Bílý Monster", "Teplá Voda"]
+    if item["name"] in oddelene2:
+        for uniq in unique:
+            if uniq["name"] == item["name"]:
+                uniq["count"] += 1
+                break
+    elif item["name"] in oddelene:
         item["count"] += 1
-    item["count"] += 1
+    else:
+        for jidlo in jidlicka:
+            if jidlo["name"] == item["name"]:
+                jidlo["count"] += 1
+                break
+        else:
+            item["count"] += 1
     update(UIstate)
     zmena()
  
@@ -651,7 +683,7 @@ for item in zmrzliny:
     item["label"] = label
     btn.clicked.connect(lambda _, i=item: aktivujeme(i))
 
-for item in special:
+for item in special + unique:
     btn = QPushButton(novak)
     btn.setIcon(QIcon(item["img"]))
     btn.setGeometry(item["x"], item["y"], 115, 50)
@@ -718,7 +750,11 @@ def updateenvir():
     """)
             else:
                 item["object"].show()
-        
+    for item in nabytky + nabytkysp:
+        if item["type"] == "2":
+            obj.lower()
+            console.lower()
+
 def koupimesikocicku(item):
     global mon
     global multi, envir
@@ -726,8 +762,10 @@ def koupimesikocicku(item):
         return
     if multi == 0.5:
         multiv = 15
-    else:
+    elif multi == 1.5:
         multiv = -40
+    elif multi == 1:
+        multiv = 0
     if mon < item["price"] - multiv:
         return
     mon = mon - (item["price"] - multiv)
@@ -995,8 +1033,6 @@ def piskoviste():
     global start
     global lock
     global artsakh
-    if povaha == "Zbabeli":
-        return
     if not start:
         return
     if lock and not artsakh == 1:
@@ -1012,51 +1048,48 @@ def piskoviste():
         psik.setIcon(QIcon(r"Psik.png"))
         lock = False
 
-def hamu_papu(trr=None):
+def hamu_papu():
     global start
     global LedSwitch
     global UIstate
     if not start:
         return
-    if LedSwitch == 0 or trr == "Kosova":
-        for item in jidlicka:
-            item["button"].hide()
-            item["label"].hide()
-        for item in zmrzliny:
-            item["button"].hide()
-            item["label"].hide()
-        frip.show()
-        menuexit.show()
+    if LedSwitch == 0:
         frigmenu.setIcon(QIcon(r"Inventormenu.png"))
         frigmenu.show()
+        menuexit.show()
+        frip.show()
         LedSwitch = 1
+        UIstate = "Hamu"
+    else:
         if UIstate == "Hamu":
             UIstate = "Zimi"
-            for item in zmrzliny:
-                item["button"].show()
-                item["label"].show()
-                update("Zimi")
+        elif UIstate == "Zimi":
+            UIstate = "Gouda"
         else:
             UIstate = "Hamu"
-            for item in jidlicka:
-                item["button"].show()
-                item["label"].show()
-                update("Hamu")
-        LedSwitch = 1
-    else:
-        if trr == "Kosova":
-            return
-        menuexit.hide()
-        UIstate = "X"
-        LedSwitch = 0
+    for item in jidlicka + zmrzliny + unique:
+        btn = item.get("button")
+        lbl = item.get("label")
+        if btn:
+            btn.hide()
+        if lbl:
+            lbl.hide()
+    if UIstate == "Hamu":
         for item in jidlicka:
-            item["button"].hide()
-            item["label"].hide()
+            item["button"].show()
+            item["label"].show()
+        update("Hamu")
+    elif UIstate == "Zimi":
         for item in zmrzliny:
-                item["button"].hide()
-                item["label"].hide()
-        frip.hide()
-        frigmenu.hide()
+            item["button"].show()
+            item["label"].show()
+        update("Zimi")
+    elif UIstate == "Gouda":
+        for item in unique:
+            item["button"].show()
+            item["label"].show()
+        update("Gouda")
  
 def zmrdetaktydostanes():
     global start
@@ -1199,7 +1232,9 @@ def zastrel():
 
 def nakupy():
     global LedSwitch
-    global UIstate, event
+    global UIstate, event, start
+    if not start:
+        return
     if UIstate == "Led" or UIstate == "Hamu":
         return
     if LedSwitch == 0:
@@ -1277,7 +1312,8 @@ menu_btn.setIconSize(QSize(40, 40))
 menu_btn.move(550,10)
 menu_btn.setStyleSheet("background: transparent; border: none;")
 menu_btn.clicked.connect(toggle_menu)
- 
+
+spim = False
 def chud():
     global hlad
     global lock
@@ -1285,10 +1321,12 @@ def chud():
     global mon
     global stav
     global nemoci
-    global Iterator, Hp
+    global Iterator, Hp, spim
     if not start:
         return
     if stav == "noc" and not event == "E":
+        return
+    if spim:
         return
     lock = True
     if hlad <= 3:
@@ -1300,11 +1338,13 @@ def chud():
         HPBar.setIcon(QIcon(f"{Hp}.png"))
         if Hp >= 5:
             chcipl()
+            return
     if len(nemoci) > 0:
         Hp += 1
         HPBar.setIcon(QIcon(f"{Hp}.png"))
         if Hp >= 5:
             chcipl()
+            return
     if random.randint(1,15) == 3:
         mon = mon + random.randint(10,35)
         zmena()
@@ -1338,7 +1378,7 @@ def day_night():
     global mon
     global multi
     global Iterator
-    global minarickabytost, prokleti
+    global minarickabytost, prokleti, spim
     minik.show()
     if envir == "Hriste":
         navod("Exit")
@@ -1368,22 +1408,27 @@ def day_night():
             multi = 1
         else:
             multi = 1
-            cyklus.stop()
-            cyklus.start(60000)
             minik.setIcon(QIcon("MinikSleep.png"))
+        cyklus.stop()
+        cyklus.start(60000)
+        if povaha == "Zbabeli":
+            minik.setIcon(QIcon("MinikSleep.png"))
+            spim = True
     else:
         if random.randint(1,4) == 4:
             event = "Z"
         elif random.randint(1,4) == 3:
             event = "RN"
-        else:
-            event = ""
-        psik = event
-        if psik == "Z":
-            psik = ""
-        if random.randint(1,20) == 5 and not minarickabytost == "Dead":
+        if random.randint(1,20) == 3:
+            event = "UZ"
             minarickabytost = "True"
             print("An Angel has descended from the heavens")
+        else:
+            event = ""
+        multi = 1
+        psik = event
+        if psik == "Z" or psik == "UZ":
+            psik = ""
         Iterator = 2
         Switcharoonie()
         stav = "den"
@@ -1396,6 +1441,7 @@ def day_night():
         
         noc.hide()
         mon = mon + random.randint(60,133)
+        chud()
         zmena()
 
 
@@ -1415,8 +1461,6 @@ def Eggon():
 def hrajsi():
     global konik
     global lock, povaha
-    if povaha == "Zbabeli":
-        return
     if lock and konik == 10000:
         return
     if konik == 10000:
@@ -1445,15 +1489,15 @@ def hatch():
         return
     lock = True
     if hatchlvl == 0:
-        vajco.setIcon(QIcon(r"Crack2.png"))
+        vajco.setIcon(QIcon("Crack2.png"))
     elif hatchlvl == 1:
-        vajco.setIcon(QIcon(r"Crack3.png"))
+        vajco.setIcon(QIcon("Crack3.png"))
     elif hatchlvl == 2:
-        vajco.setIcon(QIcon(r"EggFinale.png"))
+        vajco.setIcon(QIcon("EggFinale.png"))
     elif hatchlvl == 10:
-        vajco.setIcon(QIcon(r"Shot.png"))
+        vajco.setIcon(QIcon("Shot.png"))
         if povaha == "Mrštný" and random.randint(1,2) == 2:
-            minik.setIcon(QIcon(f"MinVýmyk.png"))
+            minik.setIcon(QIcon("MinVýmyk.png"))
             Iterator = 2
             QTimer.singleShot(300,Switcharoonie)
             ZStoggle = 0
@@ -1465,9 +1509,9 @@ def hatch():
     else:
         start = True
         Eggon()
-        HPBar.setIcon(QIcon(f"1.png"))
-        HUBar.setIcon(QIcon(f"1H.png"))
-        minik.setIcon(QIcon(r"MinLilIdio.png"))
+        HPBar.setIcon(QIcon("1.png"))
+        HUBar.setIcon(QIcon("1H.png"))
+        minik.setIcon(QIcon("MinLilIdio.png"))
         minik.show()
         vajco.hide()
         age = 1
@@ -1506,7 +1550,7 @@ def led():
     global lock
     global UIstate, event
     if LedSwitch == 0:
-        frigmenu.setIcon(QIcon(f"FrigiMenu.png"))
+        frigmenu.setIcon(QIcon("FrigiMenu.png"))
         UIstate = "Led"
         menuexit.show()
         frigmenu.show()
@@ -1519,21 +1563,18 @@ def led():
             item["label"].show()
         if avocado == jidlicka:
             update("Led")
-        else:
+        elif avocado == special:
             update("Led2")
         LedSwitch = 1
     else:
+        LedSwitch = 0
         UIstate = "X"
         frip.hide()
         frigmenu.hide()
         menuexit.hide()
-        for item in jidlicka:
+        for item in jidlicka + special + unique:
             item["button"].hide()
             item["label"].hide()
-        for item in special:
-            item["button"].hide()
-            item["label"].hide()
-        LedSwitch = 0
  
 def masa():
     global UIstate
@@ -1547,7 +1588,10 @@ def masa():
         nakupy()
     else:
         zmrzf()
-       
+    for item in special + jidlicka + unique:
+        item["button"].hide()
+        item["label"].hide()       
+
 LedSwitch=0
 RepublikaTaiwan = 0
 
@@ -1560,7 +1604,7 @@ hopkun.clicked.connect(hrajsi)
 psik.clicked.connect(piskoviste)
 zmrz.clicked.connect(zmrzf)
 console.clicked.connect(consola)
-frip.clicked.connect(lambda _, : hamu_papu("Kosova"))
+frip.clicked.connect(hamu_papu)
 um.clicked.connect(umf)
 
 noc.raise_()
