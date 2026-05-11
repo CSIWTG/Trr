@@ -202,7 +202,7 @@ lajna.setText(f"{mon}")
 lajna.setStyleSheet("color: black; font-size: 16px;")
 lajna.adjustSize()
 lajna.move((600 - lajna.width()) // 2, 5)
- 
+
 def zmena():
     lajna.setText(f"{mon:g}")
     lajna.adjustSize()
@@ -241,7 +241,19 @@ HUBar.setStyleSheet("""
         background: transparent;
     }
 """)
- 
+FBar = QPushButton(novak)
+FBar.move(233,10)
+FBar.setIcon(QIcon("0F.png"))
+FBar.setAttribute(QtCore.Qt.WA_TransparentForMouseEvents)
+FBar.show()
+FBar.setFixedSize(60, 50)
+FBar.setIconSize(QSize(60, 50))
+FBar.setStyleSheet("""
+QPushButton {
+    border: none;
+    background: transparent;;
+}
+""")
 frigmenu = QPushButton(novak)
 frigmenu.setIcon(QIcon(r"Frigimenu.png"))
 frigmenu.move(67,-50)
@@ -376,12 +388,15 @@ def zneskodnit(enemy):
     enemy["widget"] = None
 
 def sezer(item):
-    global Hp, hlad, UIstate, Iterator, povaha, mon, prokleti
+    global Hp, hlad, UIstate, Iterator, povaha, mon, prokleti, Frenship, katana
     if item["count"] <= 0:
         return
     if item["name"] == "Hot Dawg":
         if hlad == 0 and not povaha == "Obžerství":
             return
+        if not Frenship == 7:
+                Frenship += 1
+                katana = True
         if not povaha == "Obžerství":
             if hlad - 2 == -1:
                 hlad = hlad - 1
@@ -415,6 +430,9 @@ def sezer(item):
             mon += 1
         else:
             return
+        if not Frenship == 7:
+                Frenship += 1
+                katana = True
     elif item["name"] == "Ibalgin":
         if len(nemoci) > 0:
             nemoci.pop()
@@ -439,6 +457,9 @@ def sezer(item):
         Hp = 1
         if len(nemoci) > 0:
             nemoci.pop()
+        if not Frenship == 7:
+                Frenship += 1
+                katana = True
     else:
         if hlad == 0 and not povaha == "Obžerství":
             return
@@ -446,6 +467,7 @@ def sezer(item):
         mon += 1
     item["count"] = item["count"] - 1
     HPBar.setIcon(QIcon(f"{Hp}.png"))
+    FBar.setIcon(QIcon(f"{Frenship}F.png"))
     if hlad < 6:
             if hlad > 0:
                 HUBar.setIcon(QIcon(f"{hlad+1}H.png"))
@@ -467,7 +489,7 @@ def chcipl():
     global povaha
     global Hp
     global Iterator
-    global ZStoggle, burt, agedotaznik, nemoci, lock, prokleti
+    global ZStoggle, burt, agedotaznik, nemoci, lock, prokleti, katana, Frenship
     hybaj.stop()
     ani.stop()
     spawner.stop()
@@ -475,6 +497,8 @@ def chcipl():
     cyklus.stop()
     ZStoggle = 0
     start = False
+    katana = False
+    Frenship = 0
     del nemoci[:]
     HPBar.setIcon(QIcon("5.png"))
     vajco.setIcon(QIcon("GunPoint.png"))
@@ -511,10 +535,10 @@ nabytkysp = [
 ]
 
 jidlicka = [
-    {"name": "Hot Dawg", "img": "Horkopes.png", "y": 211, "x": 240, "price": 50, "count": 0, "lable": "Hot Dog\n+2 HP"},
-    {"name": "Pizza", "img": "Pizza.png", "y": 211, "x": 340, "price": 40, "count": 0, "lable": "Pizza\n-1 HU\n+1 HP"},
+    {"name": "Hot Dawg", "img": "Horkopes.png", "y": 211, "x": 240, "price": 50, "count": 0, "lable": "Hot Dog\n-2 HU\n+1 FR"},
+    {"name": "Pizza", "img": "Pizza.png", "y": 211, "x": 340, "price": 34, "count": 0, "lable": "Pizza\n50% -1 HU\n50% +1 HP"},
     {"name": "Nugetka", "img": "Nugetky.png", "y": 140, "x": 340, "price": 30, "count": 2, "lable": "Nugetka\n-1 HU"},
-    {"name": "Bílý Monster", "img": "Monster.png", "y": 211, "x": 140, "price": 36, "count": 0, "lable": "Bílý Monster\n+1 HP"},
+    {"name": "Bílý Monster", "img": "Monster.png", "y": 211, "x": 140, "price": 36, "count": 0, "lable": "Bílý Monster\n+1 HP\n+1 FR"},
     {"name": "Ibalgin", "img": "Drogy.png", "y": 140, "x": 240, "price": 50, "count": 0, "lable": "Ibalgin\n-1 Nemoc"},
     {"name": "Teplá Voda", "img": "Vroci.png", "y": 140, "x": 140, "price": 20, "count": 1, "lable": "Teplá Voda\n50% -1 HU"}
 ]
@@ -532,7 +556,7 @@ special = [
     {"name": "Svěcená Voda", "img": "Holy.png", "y": 211, "x": 240, "price": 50, "count": 0, "lable": "Svěcená Voda\n-1 HU\n-1 Prokletí"},
     {"name": "Hlaveň Bohů", "img": "GunHoly.png", "y": 211, "x": 340, "price": 150, "count": 0, "lable": "Hlaveň Bohů\n+ Jeste Nevime"},
     {"name": "Nugetka", "img": "Nugetky.png", "y": 140, "x": 340, "price": 30, "count": 2, "lable": "Nugetka\n-1 HU"},
-    {"name": "Zlatý Hotdog", "img": "Godtog.png", "y": 211, "x": 140, "price": 90, "count": 0, "lable": "Zlatý Hot Dog\n-Max HU\n+Max HP\n-1 Nemoc"},
+    {"name": "Zlatý Hotdog", "img": "Godtog.png", "y": 211, "x": 140, "price": 90, "count": 0, "lable": "Zlatý Hot Dog\n-Max HU\n+Max HP\n-1 Nemoc\n+1 FR"},
     {"name": "Ibalgin", "img": "Drogy.png", "y": 140, "x": 240, "price": 50, "count": 0, "lable": "Ibalgin\n-1 Nemoc"},
     {"name": "Teplá Voda", "img": "Vroci.png", "y": 140, "x": 140, "price": 20, "count": 1, "lable": "Teplá Voda\n50% -1 HU"}
 ]
@@ -540,7 +564,7 @@ special = [
 unique = [
     {"name": "Svěcená Voda", "img": "Holy.png", "y": 150, "x": 140, "price": 50, "count": 0, "lable": "Svěcená Voda\n-1 HU\n-1 Prokletí"},
     {"name": "Hlaveň Bohů", "img": "GunHoly.png", "y": 150, "x": 240, "price": 150, "count": 0, "lable": "Hlaveň Bohů\n+ Jeste Nevime"},
-    {"name": "Zlatý Hotdog", "img": "Godtog.png", "y": 150, "x": 340, "price": 90, "count": 0, "lable": "Zlatý Hot Dog\n-Max HU\n+Max HP\n-1 Nemoc"}
+    {"name": "Zlatý Hotdog", "img": "Godtog.png", "y": 150, "x": 340, "price": 90, "count": 0, "lable": "Zlatý Hot Dog\n-Max HU\n+Max HP\n-1 Nemoc\n+1 FR"}
 ]
 
 multi = 1
@@ -787,6 +811,7 @@ def koupimesikocicku(item):
     update("Nakup")
     updateenvir()
 
+Frenship = 0
 for item in nabytky:
     btn = QPushButton(novak)
     btn.setIcon(QIcon(item["img"]))
@@ -1362,6 +1387,7 @@ def chud():
     lock = False
 
 konik = 10000
+katana = False
 
 def houpatrozkaz():
     minik.hide()
@@ -1384,13 +1410,17 @@ def day_night():
     global mon
     global multi
     global Iterator
-    global minarickabytost, prokleti, spim
+    global minarickabytost, prokleti, spim, Frenship, katana
     minik.show()
     if envir == "Hriste":
         navod("Exit")
     if stav == "den":
         kladno.stop()
         noc.show()
+        if not katana:
+            if not Frenship == 0:
+                Frenship -= 1
+        FBar.setIcon(QIcon(f"{Frenship}F.png"))
         stav = "noc"
         nocniteror = ["B", "BL", "E", "UM"]
         if prokleti:
@@ -1440,6 +1470,7 @@ def day_night():
         Iterator = 2
         Switcharoonie()
         stav = "den"
+        katana = False
         spawner.stop()
         novak.setStyleSheet(f"""
 #Min {{
